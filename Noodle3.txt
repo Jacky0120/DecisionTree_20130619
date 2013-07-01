@@ -1,0 +1,95 @@
+[D]
+Help me find which noodle I may be interested in.
+
+[Q]
+1
+Do you like Chinese food or western food?
+[A]
+Chinese
+4
+Western
+2
+
+[Q]
+2
+Do you like noodles with layers(Yes/No)?
+[A]
+Yes
+8
+No
+3
+
+[Q]
+3
+Prefer long or short(Long/Short)?
+[A]
+long
+9
+short
+10
+
+[Q]
+4
+Has soup or not(Yes/No)?
+[A]
+Yes
+5
+No
+6
+
+[Q]
+5
+Soft or not(Yes/No)?
+[A]
+Yes
+7
+No
+13
+
+[Q]
+6
+Tempreture of the noodle(Hot/Medium/Cold)?
+[A]
+Hot
+14
+Medium
+15
+Cold
+16
+
+[Q]
+7
+Is it Spicy(Yes/No)?
+[A]
+Yes
+11
+No
+12
+
+[R]
+8
+Lasagna
+[R]
+9
+Spaghetti
+[R]
+10
+Linguine
+[R]
+11
+ShaoZi Noodle from Shaanxi
+[R]
+12
+Cantonese noodles
+[R]
+13
+Ramen
+[R]
+14
+ReGan noodle from Wuhan, Hubei
+[R]
+15
+Sliced Noodle
+[R]
+16
+Liang mian(cold noodle)
