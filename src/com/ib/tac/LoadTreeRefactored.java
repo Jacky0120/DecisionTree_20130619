@@ -25,14 +25,16 @@ import javax.swing.JOptionPane;
 
 public class LoadTreeRefactored extends JFrame {
 	boolean hasResult = false;
-	static String version = "2.0";
+	static String version = "1.0";
 	JLabel questionLabel;
 	
 	Description description = new Description("");
-	//List<Questions> questionList = new ArrayList<Questions>();
-	//List<Answers> answerList = new ArrayList<Answers>();
 	List<Questions> theQuestionList = new ArrayList<Questions>();
 	List<Answers> theAnswerList = new ArrayList<Answers>();
+	final int[] pathQ = new int[theQuestionList.size()];
+	final int[] pathA = new int[theAnswerList.size()]; 
+	int q = 0;
+	int a = 0;
 	Answers result = new Answers(0,"result",0);
 	
 	public LoadTreeRefactored(){
@@ -43,10 +45,6 @@ public class LoadTreeRefactored extends JFrame {
 	}
 	
 	public void displayUI(){
-		int q = 0;
-		int a = 0;
-		int[] pathQ = new int[theQuestionList.size()];
-		int[] pathA = new int[theAnswerList.size()]; 
 		setLayout(new FlowLayout());
 		printDescription();
 		printQA(q);
@@ -61,10 +59,10 @@ public class LoadTreeRefactored extends JFrame {
 		add(descriptionLabel);
 	}
 	
-	public void printQA(int i){
+	public void printQA(final int i){
 		questionLabel = new JLabel(theQuestionList.get(i).getQuestion()); 
 		add(questionLabel);
-		List<JButton> theButtonList = new ArrayList<JButton>();
+		final List<JButton> theButtonList = new ArrayList<JButton>();
 		if(theQuestionList.get(i).theqAnswerList.get(0).getAnswer().equals("result")){
 			return;
 		}
@@ -74,10 +72,27 @@ public class LoadTreeRefactored extends JFrame {
 				add(theButtonList.get(m));
 				theButtonList.get(m).addActionListener(new ActionListener(){
 					public void actionPerformed(ActionEvent e) {
-						JOptionPane.showMessageDialog(LoadTreeRefactored.this, e.getActionCommand());
+						//JOptionPane.showMessageDialog(LoadTreeRefactored.this, e.getSource().toString());
+						LoadTreeRefactored.this.remove(questionLabel);
+						for(int c=0;c<theButtonList.size();c++){
+						LoadTreeRefactored.this.remove(theButtonList.get(c));
+						}
+						for(int c=0;c<theQuestionList.get(i).theqAnswerList.size();c++){
+							if(e.getActionCommand().equals(theQuestionList.get(i).theqAnswerList.get(c).getAnswer())){
+								printQA(theQuestionList.get(i).theqAnswerList.get(c).getLinkedNumber()-1);
+								pathA[a] = c+1;
+								a++;
+								pathQ[q] = theQuestionList.get(i).theqAnswerList.get(c).getLinkedNumber()-1;
+								q++;
+							}
+						}
+						LoadTreeRefactored.this.validate();
+						LoadTreeRefactored.this.repaint();
 					}
 				});
 			}
+		JLabel roadmapLabel = new JLabel("roadmap: " + pathA[a]);
+		add(roadmapLabel);
 		}
 	}
 	

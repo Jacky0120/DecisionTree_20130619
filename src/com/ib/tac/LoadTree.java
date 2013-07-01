@@ -1,90 +1,155 @@
 package com.ib.tac;
 
-import java.io.*;
-import java.lang.*;
-import java.util.*;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
+import java.awt.FlowLayout;
+import javax.swing.JLabel;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JButton;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionListener;
+import javax.swing.JOptionPane;
 
-public class LoadTree {
-	private Scanner input;
-	int questionSize = 20;
-	int q = 0;
-	int answerSize = 20;
-	int a = 0;
-	int questionNumber = 0;
-	int i = 0;
+public class LoadTree extends JFrame {
 	boolean hasResult = false;
-	
+	static String version = "1.0";
+	JLabel questionLabel;
 	Description description = new Description("");
-	Questions[] questionList = new Questions[questionSize];
-	Answers[] answerList = new Answers[answerSize];
-	ArrayList<Questions> theQuestionList = new ArrayList<Questions>();
-	ArrayList<Answers> theAnswerList = new ArrayList<Answers>();
+	List<Questions> theQuestionList = new ArrayList<Questions>();
+	List<Answers> theAnswerList = new ArrayList<Answers>();
+	List<Integer> pathQ =new ArrayList<Integer>();
+	List<Integer> pathA =new ArrayList<Integer>();
+	String rml = ""; 
 	Answers result = new Answers(0,"result",0);
 	
+	public LoadTree(){
+		 super("Diagnosis Tool " + version);
+		 this.processTree();
+		 //this.displayTree();
+		 this.displayUI();
+	}
+	
+	public void displayUI(){
+
+		setLayout(new FlowLayout());
+		printDescription();
+		pathQ.add(1);
+		printQA(0);
+	}
+	
+	public void printDescription(){
+		JLabel descriptionLabel;
+		descriptionLabel = new JLabel(description.getDescription());
+		descriptionLabel.setToolTipText("Describe what this tree is designed to do.");
+		add(descriptionLabel);
+	}
+	
+	public void printQA(final int i){
+		questionLabel = new JLabel(theQuestionList.get(i).getQuestion()); 
+		add(questionLabel);
+		final List<JButton> theButtonList = new ArrayList<JButton>();
+		if(theQuestionList.get(i).theqAnswerList.get(0).getAnswer().equals("result")){
+			return;
+		}
+		else {
+			for(int m = 0; m < theQuestionList.get(i).theqAnswerList.size();m++){
+				theButtonList.add(new JButton(theQuestionList.get(i).getqAnswer(m).getAnswer()));
+				add(theButtonList.get(m));
+				theButtonList.get(m).addActionListener(new ActionListener(){
+
+
+					public void actionPerformed(ActionEvent e) {
+						//JOptionPane.showMessageDialog(LoadTree.this, e.getSource().toString());
+						LoadTree.this.remove(questionLabel);
+						for(int c=0;c<theButtonList.size();c++){
+						LoadTree.this.remove(theButtonList.get(c));
+						}
+						for(int c=0;c<theQuestionList.get(i).theqAnswerList.size();c++){
+							if(e.getActionCommand().equals(theQuestionList.get(i).theqAnswerList.get(c).getAnswer())){
+								pathA.add(c+1);
+								pathQ.add(theQuestionList.get(i).theqAnswerList.get(c).getLinkedNumber());
+								printQA(theQuestionList.get(i).theqAnswerList.get(c).getLinkedNumber()-1);
+								if(theQuestionList.get(theQuestionList.get(i).getqAnswer(c).getLinkedNumber()-1).theqAnswerList.get(0).getAnswer().equals("result")){
+									for(int m=0; m<pathA.size(); m++){
+										rml += "Q: " +theQuestionList.get(pathQ.get(m)-1).getQuestion()+ "   ";
+										rml += "A: " +theQuestionList.get(pathQ.get(m)-1).getqAnswer(pathA.get(m)-1).getAnswer()+ "   ";
+									}
+									JLabel roadmapLabel = new JLabel("The roadmap is: " + rml);
+									add(roadmapLabel);
+								}
+							}
+						}
+						LoadTree.this.validate();
+						LoadTree.this.repaint();
+					}
+				});
+			}
+		}
+	}
+	
+	
 	public void processTree(){
-		for(int i = 0; i  < questionSize; i++){
-			questionList[i]= new Questions(0,"",null);
-		}
-		for(int i = 0; i  < answerSize; i++){
-			answerList[i]= new Answers(0,"",0);
-		}
+		Scanner input = null;
 		try{
-			input = new Scanner(new File("Noodle3.txt"));
-			
+			input = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream("Noodle3.txt"), "UTF-8")));
 			while(input.hasNext()){
-				int n = 1;
+				
 				String t;	
 				t = input.nextLine();				
 				if ("[D]".equals(t)){	
 					description.setDescription(input.nextLine());
-					//System.out.printf("%s%s\n", "Description is: ",description.getDescription());
 				}
 				else if ("[Q]".equals(t)){
-					questionNumber = input.nextInt();
-					questionList[q].setQuestionNumber(questionNumber);
-					input.nextLine();
-					questionList[q].setQuestion(input.nextLine());
-					theQuestionList.add(questionList[q]);
-					//System.out.printf("%s%d\n%s%s\n","Question number is: ",theQuestionList.get(q).getQuestionNumber(),"Question is ",theQuestionList.get(q).getQuestion());
-					q++;
-					i = 0;
+					int questionNumber = input.nextInt();
+					input.nextLine();//this is bad...
+					String question = input.nextLine();
+					theQuestionList.add(new Questions(questionNumber, question));
+
 				}
 				else if ("[A]".equals(t)){
+					int ctr = 1;
 					while (("[Q]".equals(t) || "".equals(t) || "[R]".equals(t)) == false)
 					{
-					answerList[a].setAnswerNumber(n);
-					if ("[A]".equals(t)){
-						answerList[a].setAnswer(input.nextLine()); 
+						
+						String answerStr;
+						if ("[A]".equals(t)){
+							answerStr = input.nextLine(); 
+						}
+						else {
+							answerStr = t;
+						}
+						int linkedNumber = input.nextInt();
+						Answers answer = new Answers(ctr++, answerStr, linkedNumber);
+						theAnswerList.add(answer);
+						theQuestionList.get(theQuestionList.size()-1).setqAnswer(answer);
+
+						input.nextLine();
+						t = input.nextLine();
+
 					}
-					if ("[A]".equals(t) == false){
-						answerList[a].setAnswer(t);
-					}
-					answerList[a].setLinkedNumber(input.nextInt());
-					theAnswerList.add(answerList[a]);
-					theQuestionList.get(q-1).setqAnswer(i, answerList[a]);
-					//System.out.printf("%s%d\n%s%s\n%s%s\n","Answer number is: ",theAnswerList.get(a).getAnswerNumber(),"Answer is: ",theAnswerList.get(a).getAnswer(), "The related questions is: ",theAnswerList.get(a).getLinkedNumber());
-/*					for(int m=0; m<=i ;m++){
-						System.out.printf("%s%d%s%d%s%s\n\n", "Question ",q," has answer ",theQuestionList.get(q-1).getqAnswer(i).getAnswerNumber()," : ",theQuestionList.get(q-1).getqAnswer(i).getAnswer());
-					}*/
-					a++;
-					i++;
-					input.nextLine();
-					t = input.nextLine();
-					n++;
-					}
-					n = 1;
+
 				}
 				else if ("[R]".equals(t)){
 					
-					questionNumber = input.nextInt();
-					questionList[q].setQuestionNumber(questionNumber);
+					int questionNumber = input.nextInt();
 					input.nextLine();
-					questionList[q].setQuestion(input.nextLine());
+					String questionText = input.nextLine();
+					theQuestionList.add(new Questions(questionNumber, questionText));
+					theQuestionList.get(theQuestionList.size()-1).theqAnswerList.add(0,result);
 
-					questionList[q].theqAnswerList.add(0,result);
-					theQuestionList.add(questionList[q]);
-					//System.out.printf("%s%d\n%s%s\n","Result number is: ",theQuestionList.get(q).getQuestionNumber(),"Result is ",questionList[q].getQuestion());
-					q++;
 				}
 				else{
 					//System.out.printf("%s%s%s\n", "===",t,"===");	
@@ -104,20 +169,24 @@ public class LoadTree {
 			 System.err.println( "Error reading from file.(IllegalStateException)" );
 			 System.exit(1);
 		 } // end catch
+		catch (UnsupportedEncodingException e) {
+			System.err.println( "Error re)ading from file.(Unsupported encoding exception)" );
+			 System.exit(1);
+		}
 
 	
 		finally{
-		if(input!= null)
+		if(input!= null)			
 			input.close();
 		}
 	}
 	
 	public void displayTree(){
-		q = 0;
-		a = 0;
-		input = new Scanner(System.in);
-		int[] pathQ = new int[questionSize];
-		int[] pathA = new int[answerSize];
+		int q = 0;
+		int a = 0;
+		Scanner input = new Scanner(System.in);
+		int[] pathQ = new int[theQuestionList.size()];
+		int[] pathA = new int[theAnswerList.size()];
 		System.out.printf("%s%s\n", "Description: ",description.getDescription());
 		printQuestion(0);
 		pathQ[q] = 1;
@@ -129,7 +198,7 @@ public class LoadTree {
 		pathQ[q] = theQuestionList.get(pathQ[q-1]-1).getqAnswer(pathA[a]-1).getLinkedNumber();
 		
 		if(theQuestionList.get(pathQ[q]-1).theqAnswerList.get(0).getAnswer().equals("result")){
-			System.out.printf("%s%d\n%s%s\n","Result number is: ",theQuestionList.get(pathQ[q]-1).getQuestionNumber(),"Result is: ",questionList[pathQ[q]-1].getQuestion());
+			System.out.printf("%s%d\n%s%s\n","Result number is: ",theQuestionList.get(pathQ[q]-1).getQuestionNumber(),"Result is: ",theQuestionList.get(pathQ[q]-1).getQuestion());
 			System.out.printf("%s\n", "You have reached the conclusion, the roadmap is: ");
 			for(int m=0; m<q; m++){
 				System.out.printf("%s%d\t","Q: ",pathQ[m]);
@@ -148,14 +217,14 @@ public class LoadTree {
 	}
 	
 	public void printQuestion(int i){
-		System.out.printf("%s%d\n%s%s\n","Question number is: ",theQuestionList.get(i).getQuestionNumber(),"Question is: ",questionList[i].getQuestion());
+		System.out.printf("%s%d\n%s%s\n","Question number is: ",theQuestionList.get(i).getQuestionNumber(),"Question is: ", theQuestionList.get(i).getQuestion());
 		if(theQuestionList.get(i).theqAnswerList.get(0).getAnswer().equals("result")){
 			return;
 		}
 		else {
-		for(int m = 0; m < theQuestionList.get(i).theqAnswerList.size()-1;m++){
-			System.out.printf("%d\t%s\n",theQuestionList.get(i).getqAnswer(m).getAnswerNumber(),theQuestionList.get(i).getqAnswer(m).getAnswer());
-		}
+			for(int m = 0; m < theQuestionList.get(i).theqAnswerList.size();m++){
+				System.out.printf("%d\t%s\n",theQuestionList.get(i).getqAnswer(m).getAnswerNumber(),theQuestionList.get(i).getqAnswer(m).getAnswer());
+			}
 		}
 	}
 }
